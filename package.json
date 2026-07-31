@@ -1,0 +1,31 @@
+{
+  "name": "briggsdavis.com",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "bun --parallel dev:next dev:convex",
+    "dev:next": "next dev",
+    "dev:convex": "convex dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@convex-dev/auth": "0.0.94",
+    "@phosphor-icons/react": "2.1.10",
+    "convex": "1.43.0",
+    "next": "16.2.12",
+    "ogl": "1.0.11",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.1.2",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "babel-plugin-react-compiler": "1.0.0",
+    "oxfmt": "0.61.0",
+    "oxlint": "1.76.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "7.0.2"
+  }
+}
