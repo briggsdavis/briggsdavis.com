@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { SITE_EMAIL, SITE_NAME } from "~/lib/site"
+import { SITE_CALL_URL, SITE_EMAIL, SITE_NAME } from "~/lib/site"
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -42,7 +42,7 @@ export default function ContactPage() {
               or{" "}
               <a
                 className="border-b border-stone-950 transition-opacity hover:opacity-60"
-                href="https://cal.com/ntedvs/quick-chat"
+                href={SITE_CALL_URL}
                 target="_blank"
                 rel="noreferrer"
               >

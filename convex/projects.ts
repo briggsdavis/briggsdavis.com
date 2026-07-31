@@ -116,7 +116,7 @@ function normalizeWebsiteUrl(value: string | null) {
     invalidProject("Website URL must use http or https.")
   }
 
-  return url.toString()
+  return normalized
 }
 
 async function getProjectOrThrow(ctx: MutationCtx, projectId: Id<"projects">) {
