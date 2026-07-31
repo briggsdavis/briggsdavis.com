@@ -13,7 +13,7 @@ import {
 
 const createProjectArgsValidator = projectContentValidator.pick("title", "slug")
 const updateProjectArgsValidator = projectContentValidator
-  .omit("coverImageId", "coverImageAlt")
+  .omit("coverImageId")
   .partial()
   .extend({ projectId: v.id("projects") })
 
@@ -165,7 +165,6 @@ function toAdminListItem(project: Doc<"projects">) {
     year: project.year,
     services: project.services,
     coverImageId: project.coverImageId,
-    coverImageAlt: project.coverImageAlt,
     featured: project.featured,
     status: project.status,
     sortOrder: project.sortOrder,
@@ -189,7 +188,6 @@ async function toPublicCard(ctx: QueryCtx, project: Doc<"projects">) {
     year: project.year,
     services: project.services,
     coverImageId: project.coverImageId,
-    coverImageAlt: project.coverImageAlt,
     featured: project.featured,
     sortOrder: project.sortOrder,
     publishedAt: publishedAt(project),
@@ -209,7 +207,6 @@ async function toPublicDetail(ctx: QueryCtx, project: Doc<"projects">) {
     Promise.all(
       projectImages.map(async (image) => ({
         _id: image._id,
-        alt: image.alt,
         sortOrder: image.sortOrder,
         url: await ctx.storage.getUrl(image.storageId),
         isCover: image.storageId === project.coverImageId,
@@ -221,8 +218,6 @@ async function toPublicDetail(ctx: QueryCtx, project: Doc<"projects">) {
     ...card,
     body: project.body,
     websiteUrl: project.websiteUrl,
-    seoTitle: project.seoTitle,
-    seoDescription: project.seoDescription,
     images,
   }
 }
@@ -246,7 +241,22 @@ export const getAdmin = query({
   handler: async (ctx, args) => {
     await requireAdmin(ctx)
     const projectId = ctx.db.normalizeId("projects", args.projectId)
-    return projectId === null ? null : await ctx.db.get("projects", projectId)
+
+    if (projectId === null) {
+      return null
+    }
+
+    const project = await ctx.db.get("projects", projectId)
+
+    if (project === null) {
+      return null
+    }
+
+    const projectForEditor = { ...project }
+    delete projectForEditor.coverImageAlt
+    delete projectForEditor.seoTitle
+    delete projectForEditor.seoDescription
+    return projectForEditor
   },
 })
 
@@ -320,9 +330,6 @@ export const create = mutation({
       services: [],
       websiteUrl: null,
       coverImageId: null,
-      coverImageAlt: "",
-      seoTitle: null,
-      seoDescription: null,
       featured: false,
       status: "draft",
       sortOrder: (lastProject?.sortOrder ?? -1) + 1,
@@ -352,8 +359,6 @@ export const update = mutation({
         | "year"
         | "services"
         | "websiteUrl"
-        | "seoTitle"
-        | "seoDescription"
         | "featured"
         | "updatedAt"
         | "updatedBy"
@@ -402,16 +407,6 @@ export const update = mutation({
 
     if (args.websiteUrl !== undefined) {
       patch.websiteUrl = normalizeWebsiteUrl(args.websiteUrl)
-      hasChanges = true
-    }
-
-    if (args.seoTitle !== undefined) {
-      patch.seoTitle = normalizeNullableText(args.seoTitle, "SEO title", 70)
-      hasChanges = true
-    }
-
-    if (args.seoDescription !== undefined) {
-      patch.seoDescription = normalizeNullableText(args.seoDescription, "SEO description", 160)
       hasChanges = true
     }
 

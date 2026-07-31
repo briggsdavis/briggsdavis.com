@@ -16,16 +16,6 @@ function invalidImage(message: string): never {
   })
 }
 
-function normalizeAlt(value: string) {
-  const alt = value.trim()
-
-  if (alt.length > 240) {
-    invalidImage("Alt text must be 240 characters or fewer.")
-  }
-
-  return alt
-}
-
 async function getProjectOrThrow(ctx: QueryCtx | MutationCtx, projectId: Id<"projects">) {
   const project = await ctx.db.get("projects", projectId)
 
@@ -78,7 +68,6 @@ export const listAdmin = query({
         _creationTime: image._creationTime,
         projectId: image.projectId,
         storageId: image.storageId,
-        alt: image.alt,
         sortOrder: image.sortOrder,
         updatedAt: image.updatedAt,
         createdBy: image.createdBy,
@@ -102,7 +91,6 @@ export const add = mutation({
   args: {
     projectId: v.id("projects"),
     storageId: v.id("_storage"),
-    alt: v.string(),
   },
   returns: v.id("projectImages"),
   handler: async (ctx, args) => {
@@ -146,7 +134,6 @@ export const add = mutation({
     const imageId = await ctx.db.insert("projectImages", {
       projectId: args.projectId,
       storageId: args.storageId,
-      alt: normalizeAlt(args.alt),
       sortOrder: (lastImage?.sortOrder ?? -1) + 1,
       updatedAt: now,
       createdBy: adminId,
@@ -175,7 +162,6 @@ export const setCover = mutation({
     if (args.imageId === null) {
       await ctx.db.patch("projects", args.projectId, {
         coverImageId: null,
-        coverImageAlt: "",
         updatedAt: Date.now(),
         updatedBy: adminId,
       })
@@ -190,37 +176,7 @@ export const setCover = mutation({
 
     await ctx.db.patch("projects", args.projectId, {
       coverImageId: image.storageId,
-      coverImageAlt: image.alt,
       updatedAt: Date.now(),
-      updatedBy: adminId,
-    })
-
-    return null
-  },
-})
-
-export const updateAlt = mutation({
-  args: {
-    imageId: v.id("projectImages"),
-    alt: v.string(),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    const adminId = await requireAdmin(ctx)
-    const image = await getImageOrThrow(ctx, args.imageId)
-    const project = await getProjectOrThrow(ctx, image.projectId)
-    const alt = normalizeAlt(args.alt)
-    const now = Date.now()
-
-    await ctx.db.patch("projectImages", image._id, {
-      alt,
-      updatedAt: now,
-      updatedBy: adminId,
-    })
-
-    await ctx.db.patch("projects", project._id, {
-      ...(project.coverImageId === image.storageId ? { coverImageAlt: alt } : {}),
-      updatedAt: now,
       updatedBy: adminId,
     })
 
@@ -296,9 +252,7 @@ export const remove = mutation({
 
     await ctx.db.delete("projectImages", image._id)
     await ctx.db.patch("projects", project._id, {
-      ...(project.coverImageId === image.storageId
-        ? { coverImageId: null, coverImageAlt: "" }
-        : {}),
+      ...(project.coverImageId === image.storageId ? { coverImageId: null } : {}),
       updatedAt: now,
       updatedBy: adminId,
     })

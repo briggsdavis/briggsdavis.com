@@ -2,7 +2,7 @@
 
 import { useMutation } from "convex/react"
 import Image from "next/image"
-import { FormEvent, useCallback, useState } from "react"
+import { useCallback, useState } from "react"
 import { api } from "#/_generated/api"
 import type { Doc, Id } from "#/_generated/dataModel"
 import { getConvexErrorMessage } from "~/lib/convex-error"
@@ -24,7 +24,6 @@ export function ProjectImageCard({
   projectId: Id<"projects">
   coverImageId: Id<"_storage"> | null
 }) {
-  const updateAlt = useMutation(api.projectImages.updateAlt)
   const setCover = useMutation(api.projectImages.setCover)
   const reorderImages = useMutation(api.projectImages.reorder)
   const removeImage = useMutation(api.projectImages.remove)
@@ -48,26 +47,6 @@ export function ProjectImageCard({
       setIsBusy(false)
     }
   }, [])
-
-  const handleAltSubmit = useCallback(
-    async (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
-      const formData = new FormData(event.currentTarget)
-      const alt = formData.get("alt")
-
-      if (typeof alt !== "string") {
-        throw new Error("Missing image alt text field.")
-      }
-
-      try {
-        await runImageMutation(() => updateAlt({ imageId: image._id, alt }))
-        setNotice("Alt text saved.")
-      } catch {
-        return
-      }
-    },
-    [image._id, runImageMutation, updateAlt],
-  )
 
   const handleCover = useCallback(async () => {
     try {
@@ -149,7 +128,7 @@ export function ProjectImageCard({
           <Image
             className="object-cover"
             src={image.url}
-            alt={image.alt}
+            alt=""
             fill
             sizes="(max-width: 640px) 100vw, 50vw"
           />
@@ -187,28 +166,6 @@ export function ProjectImageCard({
           {isCover ? "Remove cover" : "Set as cover"}
         </button>
       </div>
-
-      <form className="mt-5" onSubmit={handleAltSubmit}>
-        <label className="block" htmlFor={`alt-${image._id}`}>
-          <span className="text-sm font-medium">Alt text</span>
-          <input
-            className="mt-2 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm transition outline-none focus:border-stone-950 focus:ring-2 focus:ring-stone-950/10"
-            id={`alt-${image._id}`}
-            name="alt"
-            type="text"
-            defaultValue={image.alt}
-            maxLength={240}
-            disabled={isBusy}
-          />
-        </label>
-        <button
-          className="mt-3 text-sm font-medium underline decoration-stone-300 underline-offset-4 transition hover:decoration-stone-950 disabled:cursor-not-allowed disabled:opacity-40"
-          type="submit"
-          disabled={isBusy}
-        >
-          Save alt text
-        </button>
-      </form>
 
       <div className="mt-4 min-h-5" aria-live="polite">
         {error !== undefined ? (

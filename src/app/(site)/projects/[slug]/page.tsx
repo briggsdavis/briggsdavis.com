@@ -20,20 +20,15 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
     notFound()
   }
 
-  const title = project.seoTitle === null ? project.title : project.seoTitle
-  const description = project.seoDescription === null ? project.summary : project.seoDescription
-  const images =
-    project.coverImageUrl === null
-      ? undefined
-      : [{ url: project.coverImageUrl, alt: project.coverImageAlt }]
+  const images = project.coverImageUrl === null ? undefined : [{ url: project.coverImageUrl }]
 
   return {
-    title,
-    description,
+    title: project.title,
+    description: project.summary,
     alternates: { canonical: `/projects/${project.slug}` },
     openGraph: {
-      title,
-      description,
+      title: project.title,
+      description: project.summary,
       type: "article",
       url: `/projects/${project.slug}`,
       siteName: SITE_NAME,
@@ -44,8 +39,8 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
     },
     twitter: {
       card: project.coverImageUrl === null ? "summary" : "summary_large_image",
-      title,
-      description,
+      title: project.title,
+      description: project.summary,
       images,
     },
   }
@@ -121,12 +116,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={structuredDataHtml} />
       {project.coverImageUrl !== null ? (
         <div className="mx-auto w-full max-w-7xl px-6 pt-10 lg:px-10 lg:pt-14">
-          <ProjectCover
-            projectId={project._id}
-            src={project.coverImageUrl}
-            alt={project.coverImageAlt}
-            variant="hero"
-          />
+          <ProjectCover projectId={project._id} src={project.coverImageUrl} variant="hero" />
         </div>
       ) : null}
 
@@ -202,7 +192,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 <Image
                   className="object-contain"
                   src={image.url}
-                  alt={image.alt}
+                  alt=""
                   fill
                   sizes="(max-width: 1280px) 100vw, 1280px"
                 />

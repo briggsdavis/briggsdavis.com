@@ -34,14 +34,22 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </Link>
             </nav>
           </div>
-          <button
-            className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium transition hover:border-stone-400 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-60"
-            type="button"
-            onClick={handleSignOut}
-            disabled={isSigningOut}
-          >
-            {isSigningOut ? "Logging out…" : "Log out"}
-          </button>
+          <div className="flex items-center gap-3">
+            <Link
+              className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium transition hover:border-stone-400 hover:bg-stone-100"
+              href="/"
+            >
+              View site
+            </Link>
+            <button
+              className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium transition hover:border-stone-400 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-60"
+              type="button"
+              onClick={handleSignOut}
+              disabled={isSigningOut}
+            >
+              {isSigningOut ? "Logging out…" : "Log out"}
+            </button>
+          </div>
         </div>
       </header>
       <div className="mx-auto max-w-6xl px-6 py-12">{children}</div>

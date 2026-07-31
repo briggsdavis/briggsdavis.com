@@ -109,8 +109,6 @@ function ProjectEditorForm({ project }: { project: Doc<"projects"> }) {
           year: year === null ? null : Number(year),
           services,
           websiteUrl: nullableFormString(formData, "websiteUrl"),
-          seoTitle: nullableFormString(formData, "seoTitle"),
-          seoDescription: nullableFormString(formData, "seoDescription"),
           featured: formData.has("featured"),
         })
 

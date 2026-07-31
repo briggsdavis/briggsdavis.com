@@ -1,7 +1,8 @@
 "use client"
 
+// oxlint-disable no-await-in-loop
 import { useMutation, useQuery } from "convex/react"
-import { FormEvent, useCallback, useMemo, useRef, useState } from "react"
+import { ChangeEvent, useCallback, useMemo, useRef, useState } from "react"
 import { api } from "#/_generated/api"
 import type { Doc, Id } from "#/_generated/dataModel"
 import { getConvexErrorMessage } from "~/lib/convex-error"
@@ -28,74 +29,95 @@ export function ProjectImages({ project }: { project: Doc<"projects"> }) {
   const generateUploadUrl = useMutation(api.projectImages.generateUploadUrl)
   const addImage = useMutation(api.projectImages.add)
   const discardUpload = useMutation(api.projectImages.discardUpload)
-  const uploadFormRef = useRef<HTMLFormElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string>()
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0 })
 
   const imageIds = useMemo(() => images?.map((image) => image._id) ?? [], [images])
 
+  const openImagePicker = useCallback(() => {
+    if (imageInputRef.current === null) {
+      throw new Error("Missing project image input.")
+    }
+
+    imageInputRef.current.click()
+  }, [])
+
   const handleUpload = useCallback(
-    async (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
-      const formData = new FormData(event.currentTarget)
-      const file = formData.get("image")
-      const altValue = formData.get("alt")
-
-      if (!(file instanceof File) || file.size === 0) {
-        setError("Choose an image to upload.")
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      if (event.currentTarget.files === null || event.currentTarget.files.length === 0) {
         return
       }
 
-      if (typeof altValue !== "string") {
-        throw new Error("Missing image alt text field.")
-      }
+      const files = Array.from(event.currentTarget.files)
+      event.currentTarget.value = ""
 
-      if (!allowedImageTypes.has(file.type)) {
-        setError("Upload a JPEG, PNG, WebP, or AVIF image.")
+      const invalidTypeFile = files.find((file) => !allowedImageTypes.has(file.type))
+
+      if (invalidTypeFile !== undefined) {
+        setError(`${invalidTypeFile.name} must be a JPEG, PNG, WebP, or AVIF image.`)
         return
       }
 
-      if (file.size > MAX_IMAGE_SIZE_BYTES) {
-        setError("Images must be 15 MB or smaller.")
+      const oversizedFile = files.find((file) => file.size > MAX_IMAGE_SIZE_BYTES)
+
+      if (oversizedFile !== undefined) {
+        setError(`${oversizedFile.name} must be 15 MB or smaller.`)
         return
       }
 
       setError(undefined)
       setIsUploading(true)
-      let storageId: Id<"_storage"> | undefined
+      setUploadProgress({ completed: 0, total: files.length })
+      let uploadedCount = 0
 
       try {
-        const uploadUrl = await generateUploadUrl()
-        const response = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { "Content-Type": file.type },
-          body: file,
-        })
+        for (const file of files) {
+          let storageId: Id<"_storage"> | undefined
 
-        if (!response.ok) {
-          throw new Error(`Image upload failed with status ${response.status}.`)
-        }
-
-        const uploadResult: unknown = await response.json()
-        storageId = uploadedStorageId(uploadResult)
-        await addImage({
-          projectId: project._id,
-          storageId,
-          alt: altValue,
-        })
-        uploadFormRef.current?.reset()
-      } catch (caughtError) {
-        if (storageId !== undefined) {
           try {
-            await discardUpload({ storageId })
-          } catch (cleanupError) {
-            console.error("Unable to discard failed project image upload.", cleanupError)
+            const uploadUrl = await generateUploadUrl()
+            const response = await fetch(uploadUrl, {
+              method: "POST",
+              headers: { "Content-Type": file.type },
+              body: file,
+            })
+
+            if (!response.ok) {
+              throw new Error(`${file.name} upload failed with status ${response.status}.`)
+            }
+
+            const uploadResult: unknown = await response.json()
+            storageId = uploadedStorageId(uploadResult)
+            await addImage({
+              projectId: project._id,
+              storageId,
+            })
+            uploadedCount += 1
+            setUploadProgress({ completed: uploadedCount, total: files.length })
+          } catch (caughtError) {
+            if (storageId !== undefined) {
+              try {
+                await discardUpload({ storageId })
+              } catch (cleanupError) {
+                console.error("Unable to discard failed project image upload.", cleanupError)
+              }
+            }
+
+            throw caughtError
           }
         }
-
-        setError(getConvexErrorMessage(caughtError, "Unable to upload the image."))
+      } catch (caughtError) {
+        const message = getConvexErrorMessage(caughtError, "Unable to upload the images.")
+        setError(
+          uploadedCount === 0
+            ? message
+            : `${uploadedCount} of ${files.length} images uploaded. ${message}`,
+        )
       } finally {
         setIsUploading(false)
+        setUploadProgress({ completed: 0, total: 0 })
       }
     },
     [addImage, discardUpload, generateUploadUrl, project._id],
@@ -105,43 +127,33 @@ export function ProjectImages({ project }: { project: Doc<"projects"> }) {
     <section className="mt-14 border-t border-stone-200 pt-10">
       <h2 className="font-serif text-3xl tracking-tight">Images</h2>
       <p className="mt-2 text-sm text-stone-600">
-        Upload project images, choose a cover, add alt text, and control gallery order.
+        Select images to upload them immediately, then choose a cover and control gallery order.
       </p>
 
-      <form
-        className="mt-6 rounded-xl border border-stone-200 bg-white p-5"
-        ref={uploadFormRef}
-        onSubmit={handleUpload}
-      >
-        <div className="grid gap-5 sm:grid-cols-2">
-          <label className="block" htmlFor="project-image">
-            <span className="text-sm font-medium">Image</span>
-            <input
-              className="mt-2 block w-full text-sm text-stone-600 file:mr-4 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-950 hover:file:bg-stone-200"
-              id="project-image"
-              name="image"
-              type="file"
-              accept="image/avif,image/jpeg,image/png,image/webp"
-              disabled={isUploading}
-              required
-            />
-          </label>
+      <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5">
+        <input
+          className="sr-only"
+          ref={imageInputRef}
+          id="project-image"
+          name="image"
+          type="file"
+          accept="image/avif,image/jpeg,image/png,image/webp"
+          onChange={handleUpload}
+          disabled={isUploading}
+          multiple
+          tabIndex={-1}
+        />
 
-          <label className="block" htmlFor="project-image-alt">
-            <span className="text-sm font-medium">Alt text</span>
-            <input
-              className="mt-2 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm transition outline-none focus:border-stone-950 focus:ring-2 focus:ring-stone-950/10"
-              id="project-image-alt"
-              name="alt"
-              type="text"
-              maxLength={240}
-              disabled={isUploading}
-            />
-            <span className="mt-2 block text-xs text-stone-500">
-              Leave empty only when the image is decorative.
-            </span>
-          </label>
-        </div>
+        <button
+          className="rounded-lg bg-stone-950 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-60"
+          type="button"
+          onClick={openImagePicker}
+          disabled={isUploading}
+        >
+          {isUploading
+            ? `Uploading ${Math.min(uploadProgress.completed + 1, uploadProgress.total)} of ${uploadProgress.total}…`
+            : "Upload images"}
+        </button>
 
         {error !== undefined ? (
           <p
@@ -151,15 +163,7 @@ export function ProjectImages({ project }: { project: Doc<"projects"> }) {
             {error}
           </p>
         ) : null}
-
-        <button
-          className="mt-5 rounded-lg bg-stone-950 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-60"
-          type="submit"
-          disabled={isUploading}
-        >
-          {isUploading ? "Uploading…" : "Upload image"}
-        </button>
-      </form>
+      </div>
 
       {images === undefined ? (
         <output className="block py-16 text-center text-sm text-stone-500">Loading images…</output>

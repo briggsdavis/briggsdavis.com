@@ -139,35 +139,6 @@ export function ProjectFields({ project }: { project: Doc<"projects"> }) {
           </label>
         </div>
       </section>
-
-      <section className="border-t border-stone-200 pt-10">
-        <h2 className="font-serif text-3xl tracking-tight">Search and social</h2>
-        <div className="mt-6 grid gap-6">
-          <label className="block" htmlFor="seoTitle">
-            <span className="text-sm font-medium">SEO title</span>
-            <input
-              className={inputClassName}
-              id="seoTitle"
-              name="seoTitle"
-              type="text"
-              defaultValue={project.seoTitle ?? ""}
-              maxLength={70}
-            />
-          </label>
-
-          <label className="block" htmlFor="seoDescription">
-            <span className="text-sm font-medium">SEO description</span>
-            <textarea
-              className={inputClassName}
-              id="seoDescription"
-              name="seoDescription"
-              defaultValue={project.seoDescription ?? ""}
-              maxLength={160}
-              rows={3}
-            />
-          </label>
-        </div>
-      </section>
     </div>
   )
 }

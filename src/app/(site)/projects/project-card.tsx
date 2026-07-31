@@ -20,12 +20,7 @@ export function ProjectCard({ project }: { project: Project }) {
             <p className="font-serif text-3xl tracking-tight text-stone-500">{project.title}</p>
           </div>
         ) : (
-          <ProjectCover
-            projectId={project._id}
-            src={project.coverImageUrl}
-            alt={project.coverImageAlt}
-            variant="card"
-          />
+          <ProjectCover projectId={project._id} src={project.coverImageUrl} variant="card" />
         )}
       </div>
 

@@ -12,13 +12,13 @@ export const projectContentValidator = v.object({
   services: v.array(v.string()),
   websiteUrl: v.union(v.string(), v.null()),
   coverImageId: v.union(v.id("_storage"), v.null()),
-  coverImageAlt: v.string(),
-  seoTitle: v.union(v.string(), v.null()),
-  seoDescription: v.union(v.string(), v.null()),
   featured: v.boolean(),
 })
 
 export const projectFieldsValidator = projectContentValidator.extend({
+  coverImageAlt: v.optional(v.string()),
+  seoTitle: v.optional(v.union(v.string(), v.null())),
+  seoDescription: v.optional(v.union(v.string(), v.null())),
   status: projectStatusValidator,
   sortOrder: v.number(),
   publishedAt: v.union(v.number(), v.null()),
@@ -27,10 +27,12 @@ export const projectFieldsValidator = projectContentValidator.extend({
   updatedBy: v.id("users"),
 })
 
-export const projectDocumentValidator = projectFieldsValidator.extend({
-  _id: v.id("projects"),
-  _creationTime: v.number(),
-})
+export const projectDocumentValidator = projectFieldsValidator
+  .omit("coverImageAlt", "seoTitle", "seoDescription")
+  .extend({
+    _id: v.id("projects"),
+    _creationTime: v.number(),
+  })
 
 const projectCardValidator = projectContentValidator.pick(
   "title",
@@ -40,7 +42,6 @@ const projectCardValidator = projectContentValidator.pick(
   "year",
   "services",
   "coverImageId",
-  "coverImageAlt",
   "featured",
 )
 
@@ -72,7 +73,6 @@ export const publicProjectDetailValidator = projectContentValidator.extend({
   images: v.array(
     v.object({
       _id: v.id("projectImages"),
-      alt: v.string(),
       sortOrder: v.number(),
       url: v.union(v.string(), v.null()),
       isCover: v.boolean(),
@@ -83,7 +83,7 @@ export const publicProjectDetailValidator = projectContentValidator.extend({
 export const projectImageFieldsValidator = v.object({
   projectId: v.id("projects"),
   storageId: v.id("_storage"),
-  alt: v.string(),
+  alt: v.optional(v.string()),
   sortOrder: v.number(),
   updatedAt: v.number(),
   createdBy: v.id("users"),
@@ -95,6 +95,6 @@ export const projectImageDocumentValidator = projectImageFieldsValidator.extend(
   _creationTime: v.number(),
 })
 
-export const adminProjectImageValidator = projectImageDocumentValidator.extend({
+export const adminProjectImageValidator = projectImageDocumentValidator.omit("alt").extend({
   url: v.union(v.string(), v.null()),
 })

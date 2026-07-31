@@ -10,11 +10,10 @@ const projectCoverTransition = {
 type ProjectCoverProps = {
   projectId: Id<"projects">
   src: string
-  alt: string
   variant: "card" | "hero"
 }
 
-export function ProjectCover({ projectId, src, alt, variant }: ProjectCoverProps) {
+export function ProjectCover({ projectId, src, variant }: ProjectCoverProps) {
   const isCard = variant === "card"
 
   return (
@@ -27,7 +26,7 @@ export function ProjectCover({ projectId, src, alt, variant }: ProjectCoverProps
               : "object-cover"
           }
           src={src}
-          alt={alt}
+          alt=""
           fill
           sizes={isCard ? "(max-width: 767px) 100vw, 50vw" : "(max-width: 1280px) 100vw, 1280px"}
         />
