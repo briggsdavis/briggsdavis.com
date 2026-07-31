@@ -193,6 +193,7 @@ async function toPublicCard(ctx: QueryCtx, project: Doc<"projects">) {
     featured: project.featured,
     sortOrder: project.sortOrder,
     publishedAt: publishedAt(project),
+    updatedAt: project.updatedAt,
     coverImageUrl: await coverImageUrl(ctx, project),
   }
 }

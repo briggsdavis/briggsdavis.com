@@ -58,6 +58,7 @@ export const publicProjectCardValidator = projectCardValidator.extend({
   _creationTime: v.number(),
   sortOrder: v.number(),
   publishedAt: v.number(),
+  updatedAt: v.number(),
   coverImageUrl: v.union(v.string(), v.null()),
 })
 
@@ -66,6 +67,7 @@ export const publicProjectDetailValidator = projectContentValidator.extend({
   _creationTime: v.number(),
   sortOrder: v.number(),
   publishedAt: v.number(),
+  updatedAt: v.number(),
   coverImageUrl: v.union(v.string(), v.null()),
   images: v.array(
     v.object({

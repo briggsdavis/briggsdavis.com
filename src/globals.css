@@ -3,6 +3,7 @@
 @theme inline {
   --font-serif: var(--font-serif-source);
   --font-sans: var(--font-sans-source);
+  --font-fun: var(--font-fun-source);
 }
 
 @layer base {

@@ -1,15 +1,28 @@
 import type { Metadata } from "next"
-
-const email = "hello@briggsdavis.com"
+import { SITE_EMAIL, SITE_NAME } from "~/lib/site"
 
 export const metadata: Metadata = {
   title: "Contact",
   description: "Start a conversation with Briggs Davis about your next website.",
+  alternates: { canonical: "/contact" },
+  openGraph: {
+    title: "Contact",
+    description: "Start a conversation with Briggs Davis about your next website.",
+    url: "/contact",
+    siteName: SITE_NAME,
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Contact",
+    description: "Start a conversation with Briggs Davis about your next website.",
+  },
 }
 
 export default function ContactPage() {
   return (
-    <main className="flex grow flex-col">
+    <div className="flex grow flex-col">
       <div className="mx-auto grid w-full max-w-7xl grow gap-16 px-6 py-20 lg:grid-cols-2 lg:gap-24 lg:px-10 lg:py-28">
         <header className="project-reveal max-w-2xl">
           <h1 className="font-serif text-6xl leading-none tracking-tight sm:text-7xl lg:text-8xl">
@@ -24,7 +37,7 @@ export default function ContactPage() {
         <div className="lg:mt-4">
           <p className="max-w-xl font-serif text-2xl leading-tight tracking-tight sm:text-4xl">
             <span className="block">Email us at</span>
-            <span className="mt-2 block text-stone-500">{email}</span>
+            <span className="mt-2 block text-stone-500">{SITE_EMAIL}</span>
             <span className="mt-2 block">
               or{" "}
               <a
@@ -40,6 +53,6 @@ export default function ContactPage() {
           </p>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

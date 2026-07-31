@@ -5,12 +5,26 @@ import { ServicesWheel } from "~/components/services-wheel"
 import { SiteFooter } from "~/components/site-footer"
 import { SiteHeader } from "~/components/site-header"
 import { listPublishedProjects } from "~/lib/public-projects"
+import { SITE_DESCRIPTION, SITE_NAME } from "~/lib/site"
 import { ProjectCard } from "./projects/project-card"
 
 export const metadata: Metadata = {
-  title: { absolute: "Briggs Davis" },
-  description:
-    "Briggs Davis is a two-person web development firm creating clear, fast, durable websites.",
+  title: { absolute: `${SITE_NAME} | Web Design & Development` },
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: `${SITE_NAME} | Web Design & Development`,
+    description: SITE_DESCRIPTION,
+    url: "/",
+    siteName: SITE_NAME,
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} | Web Design & Development`,
+    description: SITE_DESCRIPTION,
+  },
 }
 
 export default async function Home() {

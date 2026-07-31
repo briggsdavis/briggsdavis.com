@@ -119,7 +119,7 @@ export function ServicesWheel() {
             >
               {serviceItems.map((item) => (
                 <div
-                  className="absolute inset-0 flex [transform:rotateX(var(--service-angle))_translateZ(var(--service-radius))] items-center justify-center text-center text-5xl font-bold tracking-tight whitespace-nowrap text-stone-950 uppercase backface-hidden sm:text-6xl lg:text-7xl"
+                  className="absolute inset-0 flex transform-[rotateX(var(--service-angle))_translateZ(var(--service-radius))] items-center justify-center text-center font-fun text-5xl font-bold whitespace-nowrap text-stone-950 uppercase backface-hidden sm:text-6xl lg:text-7xl"
                   key={item.label}
                   style={item.style}
                 >

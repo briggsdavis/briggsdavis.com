@@ -1,9 +1,12 @@
+// oxlint-disable react-perf/jsx-no-new-object-as-prop
+
 import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ProjectCover } from "~/components/project-cover"
 import { getPublishedProject } from "~/lib/public-projects"
+import { SITE_NAME, SITE_URL } from "~/lib/site"
 
 type ProjectPageProps = {
   params: Promise<{ slug: string }>
@@ -33,7 +36,11 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
       description,
       type: "article",
       url: `/projects/${project.slug}`,
+      siteName: SITE_NAME,
+      locale: "en_US",
       images,
+      publishedTime: new Date(project.publishedAt).toISOString(),
+      modifiedTime: new Date(project.updatedAt).toISOString(),
     },
     twitter: {
       card: project.coverImageUrl === null ? "summary" : "summary_large_image",
@@ -62,9 +69,56 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       : project.images.filter((image) => !image.isCover)
   const hasProjectDetails =
     project.client !== null || project.year !== null || project.services.length > 0
+  const projectUrl = `${SITE_URL}/projects/${project.slug}`
+  const projectImageUrls = project.images.flatMap((image) =>
+    image.url === null ? [] : [image.url],
+  )
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "@id": `${projectUrl}/#article`,
+        headline: project.title,
+        description: project.summary,
+        url: projectUrl,
+        mainEntityOfPage: projectUrl,
+        datePublished: new Date(project.publishedAt).toISOString(),
+        dateModified: new Date(project.updatedAt).toISOString(),
+        author: {
+          "@type": "Organization",
+          "@id": `${SITE_URL}/#organization`,
+          name: SITE_NAME,
+        },
+        ...(projectImageUrls.length === 0 ? {} : { image: projectImageUrls }),
+        keywords: project.services,
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Projects",
+            item: `${SITE_URL}/projects`,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: project.title,
+            item: projectUrl,
+          },
+        ],
+      },
+    ],
+  }
+  const structuredDataHtml = {
+    __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+  }
 
   return (
     <article>
+      <script type="application/ld+json" dangerouslySetInnerHTML={structuredDataHtml} />
       {project.coverImageUrl !== null ? (
         <div className="mx-auto w-full max-w-7xl px-6 pt-10 lg:px-10 lg:pt-14">
           <ProjectCover

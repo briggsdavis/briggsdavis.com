@@ -1,10 +1,25 @@
 import type { Metadata } from "next"
 import { listPublishedProjects } from "~/lib/public-projects"
+import { SITE_NAME } from "~/lib/site"
 import { ProjectCard } from "./project-card"
 
 export const metadata: Metadata = {
   title: "Projects",
   description: "Selected web development work from Briggs Davis.",
+  alternates: { canonical: "/projects" },
+  openGraph: {
+    title: "Projects",
+    description: "Selected web development work from Briggs Davis.",
+    url: "/projects",
+    siteName: SITE_NAME,
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Projects",
+    description: "Selected web development work from Briggs Davis.",
+  },
 }
 
 export default async function ProjectsPage() {
